@@ -12,6 +12,7 @@ java Walk <входной файл> <выходной файл>
 Пример:
 
 Входной файл
+```
                         java/info/kgeorgiy/java/advanced/walk/samples/1
                         java/info/kgeorgiy/java/advanced/walk/samples/12
                         java/info/kgeorgiy/java/advanced/walk/samples/123
@@ -19,7 +20,9 @@ java Walk <входной файл> <выходной файл>
                         java/info/kgeorgiy/java/advanced/walk/samples/1
                         java/info/kgeorgiy/java/advanced/walk/samples/binary
                         java/info/kgeorgiy/java/advanced/walk/samples/no-such-file        
+```
 Выходной файл
+```
                         050c5d2e java/info/kgeorgiy/java/advanced/walk/samples/1
                         2076af58 java/info/kgeorgiy/java/advanced/walk/samples/12
                         72d607bb java/info/kgeorgiy/java/advanced/walk/samples/123
@@ -27,6 +30,7 @@ java Walk <входной файл> <выходной файл>
                         050c5d2e java/info/kgeorgiy/java/advanced/walk/samples/1
                         8e8881c5 java/info/kgeorgiy/java/advanced/walk/samples/binary
                         00000000 java/info/kgeorgiy/java/advanced/walk/samples/no-such-file       
+```
 2. Усложненная версия:
 Разработайте класс RecursiveWalk, осуществляющий подсчет хеш-сумм файлов в директориях
 * Входной файл содержит список файлов и директорий, которые требуется обойти. 
@@ -34,15 +38,19 @@ java Walk <входной файл> <выходной файл>
 Пример:
 
 Входной файл
+```
                         java/info/kgeorgiy/java/advanced/walk/samples/binary
                         java/info/kgeorgiy/java/advanced/walk/samples             
+```
 Выходной файл
+```
                         8e8881c5 java/info/kgeorgiy/java/advanced/walk/samples/binary
                         050c5d2e java/info/kgeorgiy/java/advanced/walk/samples/1
                         2076af58 java/info/kgeorgiy/java/advanced/walk/samples/12
                         72d607bb java/info/kgeorgiy/java/advanced/walk/samples/123
                         81ee2b55 java/info/kgeorgiy/java/advanced/walk/samples/1234
                         8e8881c5 java/info/kgeorgiy/java/advanced/walk/samples/binary       
+```
 При выполнении задания следует обратить внимание на:
 * Дизайн и обработку исключений, диагностику ошибок.
 * Программа должна корректно завершаться даже в случае ошибки.
