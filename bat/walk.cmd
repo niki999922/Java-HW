@@ -1,0 +1,1 @@
+java -cp "hamcrest-core-1.3.jar;junit-4.11.jar;walk.jar;base.jar;out/production/Walker/" info.kgeorgiy.java.advanced.walk.Tester Walk ru.ifmo.rain.kochetkov.walk.Walk 	
