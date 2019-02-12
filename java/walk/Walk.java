@@ -14,9 +14,13 @@ public class Walk {
     public Walk(final String input, final String output) throws WalkException {
         try {
             inputPath = Paths.get(input);
+        } catch (InvalidPathException e) {
+            throw new WalkException("Invalid path input file: " + e.getMessage());
+        }
+        try {
             outputPath = Paths.get(output);
         } catch (InvalidPathException e) {
-            throw new WalkException("Invalid path input or output file: " + e.getMessage());
+            throw new WalkException("Invalid path output file: " + e.getMessage());
         }
     }
 
@@ -31,14 +35,13 @@ public class Walk {
                     } catch (InvalidPathException | IOException e) {
                         hash = 0;
                     }
-                    PrintWriter printWriter = new PrintWriter(writer);
-                    printWriter.printf("%08x %s\n", hash, filePath);
+                    writer.write(String.format("%08x", hash) + " " + filePath +'\n');
                 }
             } catch (IOException e) {
-                throw new WalkException("Wrong writing: " + e.getMessage());
+                throw new WalkException("Wrong file writing: " + e.getMessage());
             }
         } catch (IOException e) {
-            throw new WalkException("Wrong reading: " + e.getMessage());
+            throw new WalkException("Wrong file reading: " + e.getMessage());
         }
     }
 
