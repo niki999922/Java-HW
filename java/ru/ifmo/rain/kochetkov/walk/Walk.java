@@ -2,16 +2,13 @@ package ru.ifmo.rain.kochetkov.walk;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 public class Walk {
     private final Path inputPath;
     private final Path outputPath;
 
-    public Walk(final String input, final String output) throws WalkException {
+    public Walk(final String input, final String output) throws WalkException, IOException {
         try {
             inputPath = Paths.get(input);
         } catch (InvalidPathException e) {
@@ -22,6 +19,10 @@ public class Walk {
         } catch (InvalidPathException e) {
             throw new WalkException("Invalid path output file: " + e.getMessage());
         }
+        if (Files.notExists(outputPath)) {
+            Files.createDirectories(outputPath.getParent());
+        }
+        Files.createFile(outputPath);
     }
 
     public void walk() throws WalkException {
@@ -32,7 +33,7 @@ public class Walk {
                     int hash;
                     try {
                         hash = FNV.FNVHash(Paths.get(filePath));
-                    } catch (InvalidPathException | IOException e) {
+                    } catch (InvalidPathException | IOException  e) {
                         hash = 0;
                     }
                     writer.write(String.format("%08x", hash) + " " + filePath +'\n');
@@ -57,3 +58,4 @@ public class Walk {
         }
     }
 }
+    
