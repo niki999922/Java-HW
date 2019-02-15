@@ -14,7 +14,6 @@ public class Walk {
         } catch (InvalidPathException e) {
             throw new WalkException("Invalid path input file: " + e.getMessage());
         }
-        output = output.replaceAll("\\|/", File.pathSeparator);
         try {
             outputPath = Paths.get(output);
         } catch (InvalidPathException e) {
@@ -22,7 +21,9 @@ public class Walk {
         }
         try {
             if (Files.notExists(outputPath)) {
-                Files.createDirectories(outputPath.getParent());
+                if (outputPath.getParent() != null) {
+                    Files.createDirectories(outputPath.getParent());
+                }
             }
         } catch (IOException e) {
             throw new WalkException("Can't create directories :" + outputPath.getParent().toString());
@@ -37,14 +38,30 @@ public class Walk {
                     int hash;
                     try {
                         hash = FNV.FNVHash(Paths.get(filePath));
-                    } catch (InvalidPathException | IOException  e) {
+                    } catch (InvalidPathException | IOException e) {
                         hash = 0;
                     }
-                    writer.write(String.format("%08x", hash) + " " + filePath +'\n');
+                    writer.write(String.format("%08x", hash) + " " + filePath + '\n');
                 }
+            } catch (FileNotFoundException e) {
+                throw new WalkException("Wrong file writing, file not found: " + e.getMessage());
+            } catch (SecurityException e) {
+                throw new WalkException("Security exception, we haven't root: " + e.getMessage());
+            } catch (UnsupportedEncodingException e) {
+                throw new WalkException("Wrong encoding : " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                throw new WalkException("Illegal argument: " + e.getMessage());
             } catch (IOException e) {
                 throw new WalkException("Wrong file writing: " + e.getMessage());
             }
+        } catch (FileNotFoundException e) {
+            throw new WalkException("File doesn't found : " + e.getMessage());
+        } catch (SecurityException e) {
+            throw new WalkException("Security exception, we haven't root: " + e.getMessage());
+        } catch (NullPointerException e) {
+            throw new WalkException("loc is null: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new WalkException("Illegal argument: buffer size <=0 or " + e.getMessage());
         } catch (IOException e) {
             throw new WalkException("Wrong file reading: " + e.getMessage());
         }
