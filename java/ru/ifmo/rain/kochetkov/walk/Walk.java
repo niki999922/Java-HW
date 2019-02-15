@@ -8,21 +8,25 @@ public class Walk {
     private final Path inputPath;
     private final Path outputPath;
 
-    public Walk(final String input, final String output) throws WalkException, IOException {
+    public Walk(final String input, String output) throws WalkException {
         try {
             inputPath = Paths.get(input);
         } catch (InvalidPathException e) {
             throw new WalkException("Invalid path input file: " + e.getMessage());
         }
+        output = output.replaceAll("\\|/", File.pathSeparator);
         try {
             outputPath = Paths.get(output);
         } catch (InvalidPathException e) {
             throw new WalkException("Invalid path output file: " + e.getMessage());
         }
-        if (Files.notExists(outputPath)) {
-            Files.createDirectories(outputPath.getParent());
+        try {
+            if (Files.notExists(outputPath)) {
+                Files.createDirectories(outputPath.getParent());
+            }
+        } catch (IOException e) {
+            throw new WalkException("Can't create directories :" + outputPath.getParent().toString());
         }
-        Files.createFile(outputPath);
     }
 
     public void walk() throws WalkException {
@@ -58,4 +62,3 @@ public class Walk {
         }
     }
 }
-    
