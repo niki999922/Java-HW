@@ -2,6 +2,32 @@
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
+## Домашнее задание 3. Студенты
+
+Условие:
+* Разработайте класс StudentDB, осуществляющий поиск по базе данных студентов.
+    * Класс StudentDB должен реализовывать интерфейс StudentQuery (простая версия) или StudentGroupQuery (сложная версия).
+    * Каждый методы должен состоять из ровного одного оператора. При этом длинные операторы надо разбивать на несколько строк.
+* При выполнении задания следует обратить внимание на:
+    * Применение лямбда-выражений и поток.
+    * Избавление от повторяющегося кода.
+
+Тестирование:
+
+ * простой вариант:
+    ```info.kgeorgiy.java.advanced.student StudentQuery <полное имя класса>```
+ * сложный вариант:
+    ```info.kgeorgiy.java.advanced.student StudentGroupQuery <полное имя класса>```
+
+Исходный код:
+
+ * простой вариант:
+    [интерфейс](modules/info.kgeorgiy.java.advanced.student/info/kgeorgiy/java/advanced/student/StudentQuery.java),
+    [тесты](modules/info.kgeorgiy.java.advanced.student/info/kgeorgiy/java/advanced/student/StudentQueryTest.java)
+ * сложный вариант:
+    [интерфейс](modules/info.kgeorgiy.java.advanced.student/info/kgeorgiy/java/advanced/student/StudentGroupQuery.java),
+    [тесты](modules/info.kgeorgiy.java.advanced.student/info/kgeorgiy/java/advanced/student/StudentGroupQueryTest.java)
+
 ## Домашнее задание 2. ArraySortedSet
 
 Условие:
@@ -12,7 +38,7 @@
 * Применение стандартных коллекций.
 * Избавление от повторяющегося кода.
 
-Тестирование
+Тестирование:
 
  * простой вариант:
     ```info.kgeorgiy.java.advanced.arrayset SortedSet <полное имя класса>```
@@ -40,7 +66,7 @@
   * Размеры файлов могут превышать размер оперативной памяти.
   Пример
 
-  Входной файл
+  Входной файл:
 
                         java/info/kgeorgiy/java/advanced/walk/samples/1
                         java/info/kgeorgiy/java/advanced/walk/samples/12
@@ -50,7 +76,7 @@
                         java/info/kgeorgiy/java/advanced/walk/samples/binary
                         java/info/kgeorgiy/java/advanced/walk/samples/no-such-file
                     
-  Выходной файл
+  Выходной файл:
 
                         050c5d2e java/info/kgeorgiy/java/advanced/walk/samples/1
                         2076af58 java/info/kgeorgiy/java/advanced/walk/samples/12
@@ -65,12 +91,12 @@
   * Входной файл содержит список файлов и директорий, которые требуется обойти. Обход директорий осуществляется рекурсивно.
   Пример
 
-  Входной файл
+  Входной файл:
 
                         java/info/kgeorgiy/java/advanced/walk/samples/binary
                         java/info/kgeorgiy/java/advanced/walk/samples
                     
-  Выходной файл
+  Выходной файл:
 
                         8e8881c5 java/info/kgeorgiy/java/advanced/walk/samples/binary
                         050c5d2e java/info/kgeorgiy/java/advanced/walk/samples/1
@@ -90,7 +116,7 @@
 
 Для того, чтобы протестировать программу:
 
- * Скачайте
+ * Скачайте:
     * тесты
         * [info.kgeorgiy.java.advanced.base.jar](artifacts/info.kgeorgiy.java.advanced.base.jar)
         * [info.kgeorgiy.java.advanced.walk.jar](artifacts/info.kgeorgiy.java.advanced.walk.jar)
