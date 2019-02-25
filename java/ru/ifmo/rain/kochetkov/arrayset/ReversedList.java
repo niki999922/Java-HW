@@ -3,6 +3,11 @@ package ru.ifmo.rain.kochetkov.arrayset;
 import java.util.AbstractList;
 import java.util.List;
 
+/**
+ * @author Kochetkov Nikita M3234
+ * Date: 21.02.2019
+ */
+
 public class ReversedList<T> extends AbstractList<T> {
     private List<T> data;
 

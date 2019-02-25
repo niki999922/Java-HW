@@ -1,0 +1,1 @@
+java -cp . -p "java-advanced-2019/artifacts;java-advanced-2019/lib" -m info.kgeorgiy.java.advanced.student  StudentGroupQuery  ru.ifmo.rain.kochetkov.student.StudentDB

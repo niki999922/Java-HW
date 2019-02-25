@@ -2,6 +2,11 @@ package ru.ifmo.rain.kochetkov.arrayset;
 
 import java.util.*;
 
+/**
+ * @author Kochetkov Nikita M3234
+ * Date: 21.02.2019
+ */
+
 public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     private final List<T> data;
     private final Comparator<? super T> comparator;

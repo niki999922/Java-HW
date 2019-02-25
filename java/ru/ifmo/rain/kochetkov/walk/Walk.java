@@ -4,6 +4,11 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
+/**
+ * @author Kochetkov Nikita M3234
+ * Date: 11.02.2019
+ */
+
 public class Walk {
     private final Path inputPath;
     private final Path outputPath;

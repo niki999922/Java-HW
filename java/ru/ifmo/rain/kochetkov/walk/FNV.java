@@ -5,6 +5,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * @author Kochetkov Nikita M3234
+ * Date: 11.02.2019
+ */
+
 public final class FNV {
     private static final int FNV_32_INIT = 0x811c9dc5;
     private static final int FNV_32_PRIME = 0x01000193;
