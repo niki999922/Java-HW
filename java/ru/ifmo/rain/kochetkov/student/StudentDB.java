@@ -1,59 +1,18 @@
 package ru.ifmo.rain.kochetkov.student;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import info.kgeorgiy.java.advanced.student.Student;
+import info.kgeorgiy.java.advanced.student.StudentQuery;
+
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * @author Kochetkov Nikita M3234
  * Date: 25.02.2019
  */
 
-public class StudentDB implements StudentGroupQuery {
-
-    /**
-     * Returns student groups, where both groups and students within a group are ordered by name.
-     *
-     * @param students
-     */
-    @Override
-    public List<Group> getGroupsByName(Collection<Student> students) {
-        return null;
-    }
-
-    /**
-     * Returns student groups, where groups are ordered by name, and students within a group are ordered by id.
-     *
-     * @param students
-     */
-    @Override
-    public List<Group> getGroupsById(Collection<Student> students) {
-        return null;
-    }
-
-    /**
-     * Returns name of the group containing maximum number of students.
-     * If there are more than one largest group, the one with smallest name is returned.
-     *
-     * @param students
-     */
-    @Override
-    public String getLargestGroup(Collection<Student> students) {
-        return null;
-    }
-
-    /**
-     * Returns name of the group containing maximum number of students with distinct first names.
-     * If there are more than one largest group, the one with smallest name is returned.
-     *
-     * @param students
-     */
-    @Override
-    public String getLargestGroupFirstName(Collection<Student> students) {
-        return null;
-    }
-
+public class StudentDB implements StudentQuery {
     /**
      * Returns student {@link Student#getFirstName() first names}.
      *
@@ -61,7 +20,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<String> getFirstNames(List<Student> students) {
-        return null;
+        return students.stream()
+                .map(Student::getFirstName)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -71,7 +32,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<String> getLastNames(List<Student> students) {
-        return null;
+        return students.stream()
+                .map(Student::getLastName)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -81,7 +44,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<String> getGroups(List<Student> students) {
-        return null;
+        return students.stream()
+                .map(Student::getGroup)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -91,7 +56,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<String> getFullNames(List<Student> students) {
-        return null;
+        return students.stream()
+                .map((student) -> student.getFirstName() + " " + student.getLastName())
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -101,7 +68,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
-        return null;
+        return students.stream()
+                .map(Student::getFirstName)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     /**
@@ -111,8 +80,13 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public String getMinStudentFirstName(List<Student> students) {
-        return null;
+        return students.stream()
+                .min(Student::compareTo)
+                .map(Student::getFirstName)
+                .orElse("");
     }
+
+    //!!!!!!!!!!!!!!!!!!!!
 
     /**
      * Returns list of students sorted by {@link Student#getId() id}.
@@ -121,7 +95,9 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<Student> sortStudentsById(Collection<Student> students) {
-        return null;
+        return students.stream()
+                .sorted(Student::compareTo)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -134,7 +110,11 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<Student> sortStudentsByName(Collection<Student> students) {
-        return null;
+        return students.stream()
+                .sorted(Comparator.comparing(Student::getLastName, String::compareTo)
+                        .thenComparing(Student::getFirstName, String::compareTo)
+                        .thenComparingInt(Student::getId))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -145,7 +125,12 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
-        return null;
+        return students.stream()
+                .filter(student -> name.equals(student.getFirstName()))
+                .sorted(Comparator.comparing(Student::getLastName, String::compareTo)
+                        .thenComparing(Student::getFirstName, String::compareTo)
+                        .thenComparingInt(Student::getId))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -156,7 +141,12 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<Student> findStudentsByLastName(Collection<Student> students, String name) {
-        return null;
+        return students.stream()
+                .filter(student -> name.equals(student.getLastName()))
+                .sorted(Comparator.comparing(Student::getLastName, String::compareTo)
+                        .thenComparing(Student::getFirstName, String::compareTo)
+                        .thenComparingInt(Student::getId))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -167,7 +157,13 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, String group) {
-        return null;
+        return students.stream()
+                .filter(student -> group.equals(student.getGroup()))
+                .sorted(Comparator.comparing(Student::getLastName, String::compareTo)
+                        .thenComparing(Student::getFirstName, String::compareTo)
+                        .thenComparingInt(Student::getId))
+                .collect(Collectors.toList());
+
     }
 
     /**
@@ -178,6 +174,8 @@ public class StudentDB implements StudentGroupQuery {
      */
     @Override
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, String group) {
-        return null;
+        return students.stream()
+                .filter(student -> group.equals(student.getGroup()))
+                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, BinaryOperator.minBy(String::compareTo)));
     }
 }
