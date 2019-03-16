@@ -2,6 +2,82 @@
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
+## Домашнее задание 7. Итеративный параллелизм
+
+* Реализуйте класс IterativeParallelism, который будет обрабатывать списки в несколько потоков.
+* В простом варианте должны быть реализованы следующие методы:
+  * minimum(threads, list, comparator) — первый минимум;
+  * maximum(threads, list, comparator) — первый максимум;
+  * all(threads, list, predicate) — проверка, что все элементы списка удовлетворяют предикату;
+  * any(threads, list, predicate) — проверка, что существует элемент списка, удовлетворяющий предикату.
+* В сложном варианте должны быть дополнительно реализованы следующие методы:
+  * filter(threads, list, predicate) — вернуть список, содержащий элементы удовлетворяющие предикату;
+  * map(threads, list, function) — вернуть список, содержащий результаты применения функции;
+  * join(threads, list) — конкатенация строковых представлений элементов списка.
+* Во все функции передается параметр threads — сколько потоков надо использовать при вычислении. Вы можете рассчитывать, что число потоков не велико.
+* Не следует рассчитывать на то, что переданные компараторы, предикаты и функции работают быстро.
+* При выполнении задания нельзя использовать Concurrency Utilities.
+* Рекомендуется подумать, какое отношение к заданию имеют моноиды.
+
+Тестирование
+
+ * простой вариант:
+   ```info.kgeorgiy.java.advanced.concurrent scalar <полное имя класса>```
+
+   Класс должен реализовывать интерфейс
+   [ScalarIP](modules/info.kgeorgiy.java.advanced.concurrent/info/kgeorgiy/java/advanced/concurrent/ScalarIP.java).
+
+ * сложный вариант:
+   ```info.kgeorgiy.java.advanced.concurrent list <полное имя класса>```
+
+   Класс должен реализовывать интерфейс
+   [ListIP](modules/info.kgeorgiy.java.advanced.concurrent/info/kgeorgiy/java/advanced/concurrent/ListIP.java).
+
+Исходный код тестов:
+
+* [простой вариант](modules/info.kgeorgiy.java.advanced.concurrent/info/kgeorgiy/java/advanced/concurrent/ScalarIPTest.java)
+* [сложный вариант](modules/info.kgeorgiy.java.advanced.concurrent/info/kgeorgiy/java/advanced/concurrent/ListIPTest.java)
+
+
+## Домашнее задание 5 и 6. JarImplementor
+
+* Документируйте класс Implementor и сопутствующие классы с применением Javadoc.
+  * Должны быть документированы все классы и все члены классов, в том числе закрытые (private).
+  * Документация должна генерироваться без предупреждений.
+  * Сгенерированная документация должна содержать корректные ссылки на классы стандартной библиотеки.
+* Для проверки, кроме исходного кода так же должны быть предъявлены:
+  * скрипт для генерации документации;
+  * сгенерированная документация.
+* Данное домашнее задание сдается только вместе с предыдущим. Предыдущее домашнее задание отдельно сдать будет нельзя.
+
+
+* Создайте .jar-файл, содержащий скомпилированный Implementor и сопутствующие классы.
+  * Созданный .jar-файл должен запускаться командой java -jar.
+  * Запускаемый .jar-файл должен принимать те же аргументы командной строки, что и класс Implementor.
+  * Модифицируйте Implemetor так, что бы при запуске с аргументами -jar имя-класса файл.jar он генерировал .jar-файл с реализацией соответствующего класса (интерфейса).
+* Для проверки, кроме исходного кода так же должны быть предъявлены:
+  * скрипт для создания запускаемого .jar-файла, в том числе, исходный код манифеста;
+  * запускаемый .jar-файл.
+* Данное домашнее задание сдается только вместе с предыдущим. Предыдущее домашнее задание отдельно сдать будет нельзя.
+Сложная версия. Решение должно быть модуляризовано.
+
+
+Класс должен реализовывать интерфейс
+[JarImpler](modules/info.kgeorgiy.java.advanced.implementor/info/kgeorgiy/java/advanced/implementor/JarImpler.java).
+
+Тестирование
+
+ * простой вариант:
+    ```info.kgeorgiy.java.advanced.implementor jar-interface <полное имя класса>```
+ * сложный вариант:
+    ```info.kgeorgiy.java.advanced.implementor jar-class <полное имя класса>```
+
+Исходный код тестов:
+
+* [простой вариант](modules/info.kgeorgiy.java.advanced.implementor/info/kgeorgiy/java/advanced/implementor/InterfaceJarImplementorTest.java)
+* [сложный вариант](modules/info.kgeorgiy.java.advanced.implementor/info/kgeorgiy/java/advanced/implementor/ClassJarImplementorTest.java)
+
+
 
 ## Домашнее задание 4. Implementor
 * Реализуйте класс Implementor, который будет генерировать реализации классов и интерфейсов.
