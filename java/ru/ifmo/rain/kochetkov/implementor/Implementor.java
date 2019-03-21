@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Date: 13.03.2019
  *
  * @author Kochetkov Nikita M3234
- * @since 1.8
+ * @since 8
  */
 public final class Implementor implements JarImpler {
     /**
