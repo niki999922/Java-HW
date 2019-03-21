@@ -25,28 +25,77 @@ import java.util.stream.Collectors;
 
 
 /**
+ * Implementor class for {@link JarImpler} interface
+ * <p>
+ * Date: 13.03.2019
+ *
  * @author Kochetkov Nikita M3234
- * Date: 18.03.2019
+ * @since 1.8
  */
-public class Implementor implements JarImpler {
+public final class Implementor implements JarImpler {
+    /**
+     * Tab for generated classes.
+     */
     private static final String TAB = "    ";
+
+    /**
+     * Space for generated classes.
+     */
     private static final String SPACE = " ";
+
+    /**
+     * Author name of class.
+     */
     private static final String AUTHOR = "Kochetkov Nikita";
+
+    /**
+     * Line separator for generated classes.
+     */
     private static final String EOL = System.lineSeparator();
 
+    /**
+     * Special static class for correct collisions of Methods {@link Method}
+     */
     private static class MethodWrap {
+        /**
+         * Wpar instance of {@link Method}
+         */
         private final Method method;
-        private final static int MAGIC_CONST = 37;
-        private final static int MOD = (int) (1e9 + 7);
 
-        MethodWrap(Method other) {
-            method = other;
+        /**
+         * Magic const for correct collisions
+         */
+        private final static int MAGIC_CONST = 37;
+
+        /**
+         * Mod for prevent overflow
+         */
+        private final static int MOD = Integer.MAX_VALUE;
+
+        /**
+         * Construct a wrap by dint of {@link Method}
+         *
+         * @param method instance of {@link Method}
+         */
+        MethodWrap(final Method method) {
+            this.method = method;
         }
 
+        /**
+         * Getter for {@link #method}
+         *
+         * @return wrapped instance of {@link Method}
+         */
         Method getMethod() {
             return method;
         }
 
+        /**
+         * Count hashcode for {@link #method} using hash of parameters,
+         * returned type and name of method
+         *
+         * @return hashcode for this Wrap of {@link Method}
+         */
         @Override
         public int hashCode() {
             return (Arrays.hashCode(method.getParameterTypes())
@@ -54,11 +103,15 @@ public class Implementor implements JarImpler {
                     + 2 * MAGIC_CONST * method.getName().hashCode()) % MOD;
         }
 
+        /**
+         * Compare two objects. If methods have equal name, return type and parameters,
+         * they will equals
+         *
+         * @param obj objects with whom will be compared {@link #method}
+         * @return true if object is equal with  this {@link #method}
+         */
         @Override
         public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
             if (obj instanceof MethodWrap) {
                 MethodWrap other = (MethodWrap) obj;
                 return Arrays.equals(method.getParameterTypes(), other.method.getParameterTypes())
@@ -69,6 +122,16 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Produces code implementing class or interface specified by provided <tt>class</tt>.
+     * <p>
+     * For example, the implementation of the interface {@link java.util.List}
+     * should go to <tt>$root/java/util/ListImpl.java</tt>
+     *
+     * @param clazz type class to create implementation for
+     * @param root  root of directory
+     * @throws ImplerException when implementation cannot be generated
+     */
     @Override
     public void implement(Class<?> clazz, Path root) throws ImplerException {
         checkOnDescent(clazz);
@@ -88,6 +151,19 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Produces <tt>.jar</tt> file implementing class or interface specified by provided <tt>token</tt>.
+     * <p>
+     * During implementation creates temporary folder to store files: <tt>.java</tt> and <tt>.class</tt> files.
+     * <p>
+     * If program fails you will get doesn't deleted directory with files.
+     * <p>
+     * If program complete normal, all temporary files will be deleted along with the directory.
+     *
+     * @param clazz   type token to create implementation for
+     * @param jarFile target <tt>.jar</tt> file
+     * @throws ImplerException when implementation cannot be generated
+     */
     @Override
     public void implementJar(Class<?> clazz, Path jarFile) throws ImplerException {
         checkOnNull(clazz, jarFile);
@@ -124,6 +200,11 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Create and initializing {@link Manifest} for jar archive
+     *
+     * @return Manifest for archiving in jar file with short info about jar
+     */
     private Manifest createManifest() {
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
@@ -137,7 +218,13 @@ public class Implementor implements JarImpler {
         return manifest;
     }
 
-    private String toUnicode(String text) {
+    /**
+     * Convert text to unicode
+     *
+     * @param text {@link String} to converting
+     * @return converted string
+     */
+    private String toUnicode(final String text) {
         StringBuilder b = new StringBuilder();
         for (char c : text.toCharArray()) {
             if (c >= 128) {
@@ -149,6 +236,13 @@ public class Implementor implements JarImpler {
         return b.toString();
     }
 
+    /**
+     * Returns tabs, whose amount if specified by
+     * Returns <em>n</em> tabs whose number equals if specified by
+     *
+     * @param number number of tabs
+     * @return {@link String} of tabs
+     */
     private String getTabs(final int number) {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < number; i++) {
@@ -157,7 +251,20 @@ public class Implementor implements JarImpler {
         return stringBuilder.toString();
     }
 
-    private String getReturnedType(Class<?> clazz) {
+    /**
+     * Extract for {@code clazz} special default type.
+     *
+     * <ul>
+     * <li> {@link Boolean}: false</li>
+     * <li> {@link Void}: ""</li>
+     * <li> Primitive: 0</li>
+     * <li> Other: {@code null}</li>
+     * </ul>
+     *
+     * @param clazz {@link Class} of method
+     * @return {@link String} of special type
+     */
+    private String getReturnedType(final Class<?> clazz) {
         if (clazz.equals(boolean.class)) {
             return "false";
         } else if (clazz.equals(void.class)) {
@@ -168,6 +275,12 @@ public class Implementor implements JarImpler {
         return "null";
     }
 
+    /**
+     * Collect abstracts methods in {@code storage}.
+     *
+     * @param methods massive methods of class
+     * @param storage {@link Set} where will put all accepted methods
+     */
     private static void getAbstractMethods(Method[] methods, Set<MethodWrap> storage) {
         Arrays.stream(methods)
                 .filter(method -> Modifier.isAbstract(method.getModifiers()))
@@ -175,6 +288,12 @@ public class Implementor implements JarImpler {
                 .collect(Collectors.toCollection(() -> storage));
     }
 
+    /**
+     * Writes implementation of abstract methods of given {@link Class}.
+     *
+     * @param clazz base class or implemented interface
+     * @return {@link String} of realized methods of {@code clazz}
+     */
     private String getMethods(Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
         HashSet<MethodWrap> hashSet = new HashSet<>();
@@ -189,7 +308,13 @@ public class Implementor implements JarImpler {
         return stringBuilder.toString();
     }
 
-    private String getMethod(Method method) {
+    /**
+     * Build realize of method with {@link StringBuilder}.
+     *
+     * @param method {@link Method} of implemented class or interface
+     * @return {@link String} of realized method
+     */
+    private String getMethod(final Method method) {
         return new StringBuilder(TAB).append("public" + SPACE)
                 .append(method.getReturnType().getCanonicalName())
                 .append(SPACE)
@@ -211,6 +336,14 @@ public class Implementor implements JarImpler {
                 .toString();
     }
 
+    /**
+     * Return list of exceptions as {@link String} created like {@code ex1, ex2, ...}.
+     * <p>
+     * If amount exceptions {@code 0} return "".
+     *
+     * @param exceptionTypes massive of {@link Class}. It's {@link Exception}.
+     * @return {@link String} list of exceptions
+     */
     private String getExceptions(Class<?>[] exceptionTypes) {
         if (exceptionTypes.length == 0) return "";
         return "throws " + Arrays.stream(exceptionTypes)
@@ -218,16 +351,42 @@ public class Implementor implements JarImpler {
                 .collect(Collectors.joining("," + SPACE));
     }
 
+    /**
+     * Returns list of parameters of {@link Constructor} with {@code (...)} and their types.
+     *
+     * @param executable {@link Executable}
+     * @return {@link String} representing list of parameters
+     */
     private String getParams(Executable executable) {
         return Arrays.stream(executable.getParameters())
                 .map(this::getParam)
                 .collect(Collectors.joining("," + SPACE, "(", ")"));
     }
 
-    private String getParam(Parameter param) {
+    /**
+     * Construct from {@link Parameter} {@code -> type name}.
+     * <p>
+     * <blockquote><pre>
+     *     public void getCost(Java.lang.String arg1, Integer arg2);
+     *                         ^^^^^^^^^^^^^^^^^^^^^
+     *                         |||||||||||||||||||||
+     * </pre></blockquote>
+     *
+     * @param param {@link Parameter}
+     * @return {@link String} of {@code param.type + " " + param.name}
+     */
+    private String getParam(final Parameter param) {
         return param.getType().getCanonicalName() + SPACE + param.getName();
     }
 
+    /**
+     * Return concatenate via {@link StringBuilder} constructors of {@code clazz}.
+     * They are realizing with call constructor of super class.
+     *
+     * @param clazz base class
+     * @return {@link String} of class realizing constructors
+     * @throws ImplerException if all constructors are private
+     */
     private String getConstructorsClass(Class<?> clazz) throws ImplerException {
         StringBuilder stringBuilder = new StringBuilder();
         Constructor<?>[] constructors = Arrays.stream(clazz.getDeclaredConstructors()).
@@ -243,7 +402,14 @@ public class Implementor implements JarImpler {
         return stringBuilder.toString();
     }
 
-    private String getConstructor(Constructor<?> constructor) {
+
+    /**
+     * Build with {@link StringBuilder} ealising of class constructor.
+     *
+     * @param constructor {@link Constructor}
+     * @return {@link String} representing realising of class constructor
+     */
+    private String getConstructor(final Constructor<?> constructor) {
         return new StringBuilder(TAB).append(constructor.getDeclaringClass().getSimpleName() + "Impl")
                 .append(getParams(constructor))
                 .append(SPACE)
@@ -260,13 +426,25 @@ public class Implementor implements JarImpler {
                 .toString();
     }
 
+    /**
+     * Returns list of parameters of {@link Constructor} with {@code ()} but without their types for super.
+     *
+     * @param constructor {@link Constructor}
+     * @return {@link String} representing list of parameters
+     */
     private String getParamsWithoutType(Constructor<?> constructor) {
         return Arrays.stream(constructor.getParameters())
                 .map(Parameter::getName)
                 .collect(Collectors.joining("," + SPACE, "(", ")"));
     }
 
-    private String getPackage(Class<?> clazz) {
+    /**
+     * Construct {@link String} package of given file.
+     *
+     * @param clazz class or interface for getting package
+     * @return {@link String} representing package
+     */
+    private String getPackage(final Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
         if (!clazz.getPackage().getName().equals("")) {
             stringBuilder.append("package")
@@ -279,7 +457,13 @@ public class Implementor implements JarImpler {
         return stringBuilder.toString();
     }
 
-    private String getHeadClass(Class<?> clazz) {
+    /**
+     * Build with {@link StringBuilder} beginning declaration of the class or implemented interface.
+     *
+     * @param clazz base class or implemented interface
+     * @return {@link String} representing beginning of class declaration
+     */
+    private String getHeadClass(final Class<?> clazz) {
         return new StringBuilder()
                 .append("public class" + SPACE)
                 .append(clazz.getSimpleName() + "Impl")
@@ -293,11 +477,25 @@ public class Implementor implements JarImpler {
                 .toString();
     }
 
-    private Path getPathToFile(Class<?> clazz, Path path, String extension) {
+    /**
+     * Return path to file, containing implementation of given class or interface.
+     *
+     * @param clazz     class or interface to get name
+     * @param path      {@link Path} to parent directory of class
+     * @param extension end file extension
+     * @return
+     */
+    private Path getPathToFile(final Class<?> clazz, final Path path, final String extension) {
         return path.resolve(clazz.getPackageName().replace('.', File.separatorChar)).resolve(clazz.getSimpleName() + "Impl" + extension);
     }
 
-    private void createDirectories(Path path) throws ImplerException {
+    /**
+     * Create nested directories.
+     *
+     * @param path {@link Path} where create directories
+     * @throws ImplerException if error occurred during creating of directories
+     */
+    private void createDirectories(final Path path) throws ImplerException {
         try {
             Files.createDirectories(Objects.requireNonNull(path.getParent()));
         } catch (IOException e) {
@@ -307,7 +505,14 @@ public class Implementor implements JarImpler {
         }
     }
 
-    private void checkOnNull(Class<?> token, Path root) throws ImplerException {
+    /**
+     * Check {@code token and root} on nullable through method of {@link Objects#requireNonNull(Object)}.
+     *
+     * @param token base class or implemented interface
+     * @param root  root of directory
+     * @throws ImplerException if {@code token and root} are null
+     */
+    private void checkOnNull(final Class<?> token, final Path root) throws ImplerException {
         try {
             Objects.requireNonNull(token);
             Objects.requireNonNull(root);
@@ -316,13 +521,30 @@ public class Implementor implements JarImpler {
         }
     }
 
-    private void checkOnDescent(Class<?> clazz) throws ImplerException {
+    /**
+     * Check {@code clazz} on final modificator.
+     *
+     * @param clazz base class or implemented interface
+     * @throws ImplerException throw if class if final
+     */
+    private void checkOnDescent(final Class<?> clazz) throws ImplerException {
         if (Modifier.isFinal(clazz.getModifiers()) || clazz == Enum.class || clazz.isArray() || clazz.isPrimitive() || clazz.isEnum()) {
             throw new ImplerException("It is final class for descent");
         }
     }
 
-    private static boolean checkInputArguments(String[] args) throws ImplerException {
+    /**
+     * Return true if all arguments are amount {@code 2} and they are not null.
+     * <p>
+     * Return false if all arguments are amount {@code 3} and they are not null.
+     * <p>
+     * In other situation throw {@link ImplerException}.
+     *
+     * @param args
+     * @return true if two arguments or false if they are tree
+     * @throws ImplerException if some arguments are not corrected
+     */
+    private static boolean checkInputArguments(final String[] args) throws ImplerException {
         if (args == null) {
             throw new ImplerException("Arguments are not initialized");
         }
@@ -344,6 +566,24 @@ public class Implementor implements JarImpler {
         throw new ImplerException("Arguments are not enough initialized");
     }
 
+    /**
+     * This function choose which way of implementation to execute.
+     * <p>
+     * Work {@link Implementor} in two possible ways:
+     * <ul>
+     * <li> 2 arguments: <tt>className rootPath</tt> - runs {@link #implement(Class, Path)} with first and second arguments</li>
+     * <li> 3 arguments: <tt>-jar className jarPath</tt> - runs {@link #implementJar(Class, Path)} with second and third arguments</li>
+     * </ul>
+     * If arguments are incorrect or you have {@link ImplerException} during working, you will get correct end with information in error stream.
+     * <p>
+     * Here are some more examples of how strings can be used:
+     * <blockquote><pre>
+     *     java ru.ifmo.rain.kochetkov.implementor.Implementor outputDirectory/dev/
+     *     java -jar ru.ifmo.rain.kochetkov.implementor.Implementor outputDirectory/dev/impler.jar
+     * </pre></blockquote>
+     *
+     * @param args massive of {@link String}
+     */
     public static void main(String[] args) {
         Implementor implementor = new Implementor();
         try {
