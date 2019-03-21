@@ -1,8 +1,10 @@
 package ru.ifmo.rain.kochetkov.implementor;
 
-import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
+import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -11,36 +13,106 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 
 /**
  * @author Kochetkov Nikita M3234
  * Date: 18.03.2019
  */
-public class Implementor implements Impler {
+public class Implementor implements JarImpler {
     private static final String TAB = "    ";
     private static final String SPACE = " ";
+    private static final String AUTHOR = "Kochetkov Nikita";
     private static final String EOL = System.lineSeparator();   // next line
 
     @Override
     public void implement(Class<?> clazz, Path root) throws ImplerException {
         checkOnDescent(clazz);
         checkOnNull(clazz, root);
-        root = getPathToFile(clazz, root);
+        root = getPathToFile(clazz, root, ".java");
         createDirectories(root);
         try (BufferedWriter writer = Files.newBufferedWriter(root, StandardCharsets.UTF_8)) {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(getPackage(clazz)).
                     append(getHeadClass(clazz)).
                     append((!clazz.isInterface()) ? getConstructorsClass(clazz) : "").
-                    append(getMetods(clazz)).
+                    append(getMethods(clazz)).
                     append("}");
-            writer.write(stringBuilder.toString());
+            writer.write(toUnicode(stringBuilder.toString()));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void implementJar(Class<?> clazz, Path jarFile) throws ImplerException {
+        checkOnNull(clazz, jarFile);
+        createDirectories(jarFile);
+        Path tmpDir;
+        try {
+            tmpDir = Files.createTempDirectory(jarFile.toAbsolutePath().getParent(), "temp");
+            implement(clazz, tmpDir);
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            try {
+                Objects.requireNonNull(compiler);
+            } catch (NullPointerException e) {
+                throw new ImplerException("Can't find javac for compiling", e);
+            }
+            String[] argsForCompiling = new String[]{"-cp",
+                    tmpDir.toString() + File.pathSeparator + System.getProperty("java.class.path"),
+                    getPathToFile(clazz, tmpDir, ".java").toString()};
+            if (compiler.run(null, null, null, argsForCompiling) != 0) {
+                throw new ImplerException("Can't compile to class file");
+            }
+            Manifest manifest = createManifest();
+            try (JarOutputStream writer = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
+                JarEntry jarAdd = new JarEntry(clazz.getName().replace('.', '/') + "Impl.class");
+                jarAdd.setTime(getPathToFile(clazz, tmpDir, ".class").toFile().lastModified());
+                writer.putNextEntry(jarAdd);
+                Files.copy(getPathToFile(clazz, tmpDir, ".class"), writer);
+            } catch (IOException e) {
+                throw new ImplerException("Can't write to JAR file", e);
+            }
+            Files.delete(getPathToFile(clazz, tmpDir, ".java"));
+            tmpDir.toFile().deleteOnExit();
+        } catch (IOException e) {
+            throw new ImplerException("Can't create temp directory", e);
+        }
+    }
+
+    private Manifest createManifest() {
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, "1.0");
+        attributes.put(new Attributes.Name("Bundle-ManifestVersion"), "1.0");
+        attributes.put(Attributes.Name.IMPLEMENTATION_TITLE, "Implementor");
+        attributes.put(Attributes.Name.CONTENT_TYPE, "application/java-archive");
+        attributes.put(Attributes.Name.IMPLEMENTATION_VENDOR, AUTHOR);
+        attributes.put(new Attributes.Name("Created-By"), AUTHOR);
+        return manifest;
+    }
+
+    private String toUnicode(String text) {
+        StringBuilder b = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            if (c >= 128) {
+                b.append(String.format("\\u%04X", (int) c));
+            } else {
+                b.append(c);
+            }
+        }
+        return b.toString();
     }
 
     private static class MethodWrap {
@@ -73,7 +145,7 @@ public class Implementor implements Impler {
                     + 2 * MAGIK_CONST * metod.getName().hashCode()) % MOD;
         }
 
-        Method getMetod() {
+        Method getMethod() {
             return metod;
         }
     }
@@ -86,7 +158,7 @@ public class Implementor implements Impler {
                 .collect(Collectors.toCollection(() -> storage));
     }
 
-    private String getMetods(Class<?> clazz) {
+    private String getMethods(Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
         HashSet<MethodWrap> hashSet = new HashSet<>();
         getAbstractMethods(clazz.getMethods(), hashSet);
@@ -95,7 +167,7 @@ public class Implementor implements Impler {
             clazz = clazz.getSuperclass();
         }
         for (MethodWrap method : hashSet) {
-            stringBuilder.append(getMetod(method.getMetod()));
+            stringBuilder.append(getMetod(method.getMethod()));
         }
         return stringBuilder.toString();
     }
@@ -140,11 +212,6 @@ public class Implementor implements Impler {
             return " 0";
         }
         return "null";
-    }
-
-
-    private String getExcept(Class<?> method) {
-        return method.getSimpleName();
     }
 
 
@@ -207,11 +274,6 @@ public class Implementor implements Impler {
                 .collect(Collectors.joining("," + SPACE, "(", ")"));
     }
 
-    private String createDefaultConstructor(Class<?> clazz) {
-        return new StringBuilder().append(clazz.getSimpleName()).
-                append("() {}").
-                append(EOL).toString();
-    }
 
     private String getPackage(Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -240,8 +302,8 @@ public class Implementor implements Impler {
     }
 
 
-    private Path getPathToFile(Class<?> clazz, Path path) {
-        return path.resolve(clazz.getPackageName().replace('.', File.separatorChar)).resolve(clazz.getSimpleName() + "Impl.java");
+    private Path getPathToFile(Class<?> clazz, Path path, String extension) {
+        return path.resolve(clazz.getPackageName().replace('.', File.separatorChar)).resolve(clazz.getSimpleName() + "Impl" + extension);
     }
 
     private void createDirectories(Path path) throws ImplerException {
@@ -266,37 +328,40 @@ public class Implementor implements Impler {
 
     private void checkOnDescent(Class<?> clazz) throws ImplerException {
         if (Modifier.isFinal(clazz.getModifiers()) || clazz == Enum.class || clazz.isArray() || clazz.isPrimitive() || clazz.isEnum()) {
-            throw new ImplerException("It is final class for descent.");
+            throw new ImplerException("It is final class for descent");
         }
     }
 
-    private static void checkInputArguments(String[] args) throws ImplerException {
+    private static boolean checkInputArguments(String[] args) throws ImplerException {
         if (args == null) {
-            throw new ImplerException("Arguments are not initialized.");
+            throw new ImplerException("Arguments are not initialized");
         }
         if (args.length == 2) {
             for (String arg : args) {
                 if (arg == null) {
-                    throw new ImplerException("Arguments are not all initialized for just implementing.");
+                    throw new ImplerException("Arguments are not all initialized for just implementing");
                 }
             }
-            return;
+            return true;
         } else if (args.length == 3) {
             for (String arg : args) {
                 if (arg == null) {
-                    throw new ImplerException("Arguments are not all initialized for just jar implementing.");
+                    throw new ImplerException("Arguments are not all initialized for jar implementing");
                 }
             }
-            return;
+            return false;
         }
-        throw new ImplerException("Arguments are not enough initialized.");
+        throw new ImplerException("Arguments are not enough initialized");
     }
 
     public static void main(String[] args) {
+        Implementor implementor = new Implementor();
         try {
-            checkInputArguments(args);
-            Implementor implementor = new Implementor();
-            implementor.implement(Class.forName(args[0]), Paths.get(args[1]));
+            if (checkInputArguments(args)) {
+                implementor.implement(Class.forName(args[0]), Paths.get(args[1]));
+            } else {
+                implementor.implementJar(Class.forName(args[1]), Paths.get(args[2]));
+            }
         } catch (ImplerException e) {
             System.err.println("Error occurred during implementation: " + e.getMessage());
         } catch (ClassNotFoundException e) {
