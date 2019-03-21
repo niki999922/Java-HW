@@ -22,7 +22,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 
 
 /**
@@ -33,7 +32,42 @@ public class Implementor implements JarImpler {
     private static final String TAB = "    ";
     private static final String SPACE = " ";
     private static final String AUTHOR = "Kochetkov Nikita";
-    private static final String EOL = System.lineSeparator();   // next line
+    private static final String EOL = System.lineSeparator();
+
+    private static class MethodWrap {
+        private final Method method;
+        private final static int MAGIC_CONST = 37;
+        private final static int MOD = (int) (1e9 + 7);
+
+        MethodWrap(Method other) {
+            method = other;
+        }
+
+        Method getMethod() {
+            return method;
+        }
+
+        @Override
+        public int hashCode() {
+            return (Arrays.hashCode(method.getParameterTypes())
+                    + MAGIC_CONST * method.getReturnType().hashCode()
+                    + 2 * MAGIC_CONST * method.getName().hashCode()) % MOD;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (obj instanceof MethodWrap) {
+                MethodWrap other = (MethodWrap) obj;
+                return Arrays.equals(method.getParameterTypes(), other.method.getParameterTypes())
+                        && method.getReturnType().equals(other.method.getReturnType())
+                        && method.getName().equals(other.method.getName());
+            }
+            return false;
+        }
+    }
 
     @Override
     public void implement(Class<?> clazz, Path root) throws ImplerException {
@@ -115,41 +149,24 @@ public class Implementor implements JarImpler {
         return b.toString();
     }
 
-    private static class MethodWrap {
-        private final Method metod;
-        private final static int MAGIK_CONST = 37;
-        private final static int MOD = (int) (1e9 + 7);
-
-        MethodWrap(Method other) {
-            metod = other;
+    private String getTabs(final int number) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < number; i++) {
+            stringBuilder.append(TAB);
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (obj instanceof MethodWrap) {
-                MethodWrap other = (MethodWrap) obj;
-                return Arrays.equals(metod.getParameterTypes(), other.metod.getParameterTypes())
-                        && metod.getReturnType().equals(other.metod.getReturnType())
-                        && metod.getName().equals(other.metod.getName());
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return (Arrays.hashCode(metod.getParameterTypes())
-                    + MAGIK_CONST * metod.getReturnType().hashCode()
-                    + 2 * MAGIK_CONST * metod.getName().hashCode()) % MOD;
-        }
-
-        Method getMethod() {
-            return metod;
-        }
+        return stringBuilder.toString();
     }
 
+    private String getReturnedType(Class<?> clazz) {
+        if (clazz.equals(boolean.class)) {
+            return "false";
+        } else if (clazz.equals(void.class)) {
+            return "";
+        } else if (clazz.isPrimitive()) {
+            return " 0";
+        }
+        return "null";
+    }
 
     private static void getAbstractMethods(Method[] methods, Set<MethodWrap> storage) {
         Arrays.stream(methods)
@@ -167,60 +184,38 @@ public class Implementor implements JarImpler {
             clazz = clazz.getSuperclass();
         }
         for (MethodWrap method : hashSet) {
-            stringBuilder.append(getMetod(method.getMethod()));
+            stringBuilder.append(getMethod(method.getMethod()));
         }
         return stringBuilder.toString();
     }
 
-    private String getTabs(final int number) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < number; i++) {
-            stringBuilder.append(TAB);
-        }
-        return stringBuilder.toString();
+    private String getMethod(Method method) {
+        return new StringBuilder(TAB).append("public" + SPACE)
+                .append(method.getReturnType().getCanonicalName())
+                .append(SPACE)
+                .append(method.getName())
+                .append(getParams(method))
+                .append(SPACE)
+                .append(getExceptions(method.getExceptionTypes()))
+                .append(SPACE + "{")
+                .append(EOL)
+                .append(getTabs(2))
+                .append("return")
+                .append(SPACE)
+                .append(getReturnedType(method.getReturnType()))
+                .append(";")
+                .append(EOL)
+                .append(getTabs(1))
+                .append("}")
+                .append(EOL)
+                .toString();
     }
-
-    private String getMetod(Method method) {
-        StringBuilder stringBuilder = new StringBuilder(TAB);
-        stringBuilder.append("public" + SPACE).
-                append(method.getReturnType().getCanonicalName()).
-                append(SPACE).
-                append(method.getName()).
-                append(getParams(method)).
-                append(SPACE).
-                append(getExceptions(method.getExceptionTypes())).
-                append(SPACE + "{").
-                append(EOL).
-                append(getTabs(2)).
-                append("return").
-                append(SPACE).
-                append(getReturnedType(method.getReturnType())).
-                append(";").
-                append(EOL).
-                append(getTabs(1)).
-                append("}").
-                append(EOL);
-        return stringBuilder.toString();
-    }
-
-    private String getReturnedType(Class<?> clazz) {
-        if (clazz.equals(boolean.class)) {
-            return "false";
-        } else if (clazz.equals(void.class)) {
-            return "";
-        } else if (clazz.isPrimitive()) {
-            return " 0";
-        }
-        return "null";
-    }
-
 
     private String getExceptions(Class<?>[] exceptionTypes) {
         if (exceptionTypes.length == 0) return "";
         return "throws " + Arrays.stream(exceptionTypes)
                 .map(Class::getCanonicalName)
                 .collect(Collectors.joining("," + SPACE));
-
     }
 
     private String getParams(Executable executable) {
@@ -238,7 +233,6 @@ public class Implementor implements JarImpler {
         Constructor<?>[] constructors = Arrays.stream(clazz.getDeclaredConstructors()).
                 filter(constructor -> !Modifier.isPrivate(constructor.getModifiers())).
                 toArray(Constructor<?>[]::new);
-
         if (constructors.length == 0) {
             throw new ImplerException("All constructors are private");
         } else {
@@ -250,22 +244,20 @@ public class Implementor implements JarImpler {
     }
 
     private String getConstructor(Constructor<?> constructor) {
-        StringBuilder stringBuilder = new StringBuilder(TAB);
-        stringBuilder.append(constructor.getDeclaringClass().getSimpleName() + "Impl").
-                append(getParams(constructor)).
-                append(SPACE).
-                append(getExceptions(constructor.getExceptionTypes())).
-                append(SPACE + "{").
-                append(EOL).
-                append(getTabs(2)).
-                append("super" + getParamsWithoutType(constructor)).
-                append(";").
-                append(EOL).
-                append(getTabs(1)).
-                append("}").
-                append(EOL);
-        return stringBuilder.toString();
-
+        return new StringBuilder(TAB).append(constructor.getDeclaringClass().getSimpleName() + "Impl")
+                .append(getParams(constructor))
+                .append(SPACE)
+                .append(getExceptions(constructor.getExceptionTypes()))
+                .append(SPACE + "{")
+                .append(EOL)
+                .append(getTabs(2))
+                .append("super" + getParamsWithoutType(constructor))
+                .append(";")
+                .append(EOL)
+                .append(getTabs(1))
+                .append("}")
+                .append(EOL)
+                .toString();
     }
 
     private String getParamsWithoutType(Constructor<?> constructor) {
@@ -274,33 +266,32 @@ public class Implementor implements JarImpler {
                 .collect(Collectors.joining("," + SPACE, "(", ")"));
     }
 
-
     private String getPackage(Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
         if (!clazz.getPackage().getName().equals("")) {
-            stringBuilder.append("package" + SPACE).
-                    append(clazz.getPackage().getName()).
-                    append(";").
-                    append(EOL);
+            stringBuilder.append("package")
+                    .append(SPACE)
+                    .append(clazz.getPackage().getName())
+                    .append(";")
+                    .append(EOL);
         }
         stringBuilder.append(EOL);
         return stringBuilder.toString();
     }
 
     private String getHeadClass(Class<?> clazz) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("public class" + SPACE).
-                append(clazz.getSimpleName() + "Impl").
-                append(SPACE).
-                append(clazz.isInterface() ? "implements" : "extends").
-                append(SPACE).
-                append(clazz.getSimpleName()).
-                append(SPACE).
-                append("{").
-                append(EOL);
-        return stringBuilder.toString();
+        return new StringBuilder()
+                .append("public class" + SPACE)
+                .append(clazz.getSimpleName() + "Impl")
+                .append(SPACE)
+                .append(clazz.isInterface() ? "implements" : "extends")
+                .append(SPACE)
+                .append(clazz.getSimpleName())
+                .append(SPACE)
+                .append("{")
+                .append(EOL)
+                .toString();
     }
-
 
     private Path getPathToFile(Class<?> clazz, Path path, String extension) {
         return path.resolve(clazz.getPackageName().replace('.', File.separatorChar)).resolve(clazz.getSimpleName() + "Impl" + extension);
@@ -312,17 +303,16 @@ public class Implementor implements JarImpler {
         } catch (IOException e) {
             throw new ImplerException("Can't create directories for output file", e);
         } catch (NullPointerException e) {
-            throw new ImplerException("Path for creating are null.", e);
+            throw new ImplerException("Path for creating are null", e);
         }
     }
-
 
     private void checkOnNull(Class<?> token, Path root) throws ImplerException {
         try {
             Objects.requireNonNull(token);
             Objects.requireNonNull(root);
         } catch (NullPointerException e) {
-            throw new ImplerException("Arguments are null.");
+            throw new ImplerException("Arguments are null");
         }
     }
 
