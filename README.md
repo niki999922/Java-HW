@@ -81,7 +81,7 @@ public interface ParallelMapper extends AutoCloseable {
 * [сложный вариант](modules/info.kgeorgiy.java.advanced.concurrent/info/kgeorgiy/java/advanced/concurrent/ListIPTest.java)
 
 
-## Домашнее задание 5 и 6. JarImplementor
+## Домашнее задание 5 и 6. JarImplementor & Javadoc
 
 * Документируйте класс Implementor и сопутствующие классы с применением Javadoc.
   * Должны быть документированы все классы и все члены классов, в том числе закрытые (private).
