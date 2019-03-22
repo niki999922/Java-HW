@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Date: 13.03.2019
  *
  * @author Kochetkov Nikita M3234
- * @since 8
+ * @since 11
  */
 public final class Implementor implements JarImpler {
     /**
@@ -123,10 +123,10 @@ public final class Implementor implements JarImpler {
     }
 
     /**
-     * Produces code implementing class or interface specified by provided <tt>class</tt>.
+     * Produces code implementing class or interface specified by provided class.
      * <p>
      * For example, the implementation of the interface {@link java.util.List}
-     * should go to <tt>$root/java/util/ListImpl.java</tt>
+     * should go to $root/java/util/ListImpl.java
      *
      * @param clazz type class to create implementation for
      * @param root  root of directory
@@ -152,16 +152,16 @@ public final class Implementor implements JarImpler {
     }
 
     /**
-     * Produces <tt>.jar</tt> file implementing class or interface specified by provided <tt>token</tt>.
+     * Produces .jar file implementing class or interface specified by provided token.
      * <p>
-     * During implementation creates temporary folder to store files: <tt>.java</tt> and <tt>.class</tt> files.
+     * During implementation creates temporary folder to store files: .java and .class files.
      * <p>
      * If program fails you will get doesn't deleted directory with files.
      * <p>
      * If program complete normal, all temporary files will be deleted along with the directory.
      *
      * @param clazz   type token to create implementation for
-     * @param jarFile target <tt>.jar</tt> file
+     * @param jarFile target .jar file
      * @throws ImplerException when implementation cannot be generated
      */
     @Override
@@ -365,7 +365,6 @@ public final class Implementor implements JarImpler {
 
     /**
      * Construct from {@link Parameter} {@code -> type name}.
-     * <p>
      * <blockquote><pre>
      *     public void getCost(Java.lang.String arg1, Integer arg2);
      *                         ^^^^^^^^^^^^^^^^^^^^^
@@ -483,7 +482,7 @@ public final class Implementor implements JarImpler {
      * @param clazz     class or interface to get name
      * @param path      {@link Path} to parent directory of class
      * @param extension end file extension
-     * @return
+     * @return {@link Path} to new file for implementing
      */
     private Path getPathToFile(final Class<?> clazz, final Path path, final String extension) {
         return path.resolve(clazz.getPackageName().replace('.', File.separatorChar)).resolve(clazz.getSimpleName() + "Impl" + extension);
@@ -525,7 +524,7 @@ public final class Implementor implements JarImpler {
      * Check {@code clazz} on final modificator.
      *
      * @param clazz base class or implemented interface
-     * @throws ImplerException throw if class if final
+     * @throws ImplerException throw if class is final
      */
     private void checkOnDescent(final Class<?> clazz) throws ImplerException {
         if (Modifier.isFinal(clazz.getModifiers()) || clazz == Enum.class || clazz.isArray() || clazz.isPrimitive() || clazz.isEnum()) {
@@ -540,7 +539,7 @@ public final class Implementor implements JarImpler {
      * <p>
      * In other situation throw {@link ImplerException}.
      *
-     * @param args
+     * @param args {@link String} massive
      * @return true if two arguments or false if they are tree
      * @throws ImplerException if some arguments are not corrected
      */
@@ -571,8 +570,8 @@ public final class Implementor implements JarImpler {
      * <p>
      * Work {@link Implementor} in two possible ways:
      * <ul>
-     * <li> 2 arguments: <tt>className rootPath</tt> - runs {@link #implement(Class, Path)} with first and second arguments</li>
-     * <li> 3 arguments: <tt>-jar className jarPath</tt> - runs {@link #implementJar(Class, Path)} with second and third arguments</li>
+     * <li> 2 arguments: className rootPath - runs {@link #implement(Class, Path)} with first and second arguments</li>
+     * <li> 3 arguments: -jar className jarPath - runs {@link #implementJar(Class, Path)} with second and third arguments</li>
      * </ul>
      * If arguments are incorrect or you have {@link ImplerException} during working, you will get correct end with information in error stream.
      * <p>
