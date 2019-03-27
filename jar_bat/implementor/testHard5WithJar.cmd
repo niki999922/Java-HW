@@ -1,1 +1,0 @@
-java -cp . -p "Jar/;java-advanced-2019/artifacts/;java-advanced-2019/lib/" -m info.kgeorgiy.java.advanced.implementor jar-class ru.ifmo.rain.kochetkov.implementor.Implementor
