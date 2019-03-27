@@ -13,10 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -32,6 +29,7 @@ import java.util.stream.Collectors;
  * @author Kochetkov Nikita M3234
  * @since 11
  */
+@SuppressWarnings("Duplicates")
 public final class Implementor implements JarImpler {
     /**
      * Tab for generated classes.
@@ -151,6 +149,7 @@ public final class Implementor implements JarImpler {
         }
     }
 
+
     /**
      * Produces .jar file implementing class or interface specified by provided token.
      * <p>
@@ -172,6 +171,15 @@ public final class Implementor implements JarImpler {
         try {
             tmpDir = Files.createTempDirectory(jarFile.toAbsolutePath().getParent(), "temp");
             implement(clazz, tmpDir);
+            StringBuilder stringBuilder = new StringBuilder();
+            String[] classPathStrings = System.getProperty("java.class.path").split(File.pathSeparator);
+            for (String string : classPathStrings) {
+                Path path = Paths.get(string);
+                File[] files = path.toFile().listFiles();
+                for (File file : files) {
+                    stringBuilder.append(Paths.get(file.toURI()).toAbsolutePath().toString()).append(File.pathSeparator);
+                }
+            }
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             try {
                 Objects.requireNonNull(compiler);
@@ -179,11 +187,14 @@ public final class Implementor implements JarImpler {
                 throw new ImplerException("Can't find javac for compiling", e);
             }
             String[] argsForCompiling = new String[]{"-cp",
-                    tmpDir.toString() + File.pathSeparator + System.getProperty("java.class.path"),
+                    tmpDir.toString() + File.pathSeparator + stringBuilder.toString(),
+                    "-encoding",
+                    "UTF8",
                     getPathToFile(clazz, tmpDir, ".java").toString()};
             if (compiler.run(null, null, null, argsForCompiling) != 0) {
                 throw new ImplerException("Can't compile to class file");
             }
+
             Manifest manifest = createManifest();
             try (JarOutputStream writer = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
                 JarEntry jarAdd = new JarEntry(clazz.getName().replace('.', '/') + "Impl.class");
@@ -198,6 +209,7 @@ public final class Implementor implements JarImpler {
         } catch (IOException e) {
             throw new ImplerException("Can't create temp directory", e);
         }
+
     }
 
     /**
@@ -315,7 +327,8 @@ public final class Implementor implements JarImpler {
      * @return {@link String} of realized method
      */
     private String getMethod(final Method method) {
-        return new StringBuilder(TAB).append("public" + SPACE)
+        return new StringBuilder(TAB).append("public")
+                .append(SPACE)
                 .append(method.getReturnType().getCanonicalName())
                 .append(SPACE)
                 .append(method.getName())
@@ -464,7 +477,8 @@ public final class Implementor implements JarImpler {
      */
     private String getHeadClass(final Class<?> clazz) {
         return new StringBuilder()
-                .append("public class" + SPACE)
+                .append("public class")
+                .append(SPACE)
                 .append(clazz.getSimpleName() + "Impl")
                 .append(SPACE)
                 .append(clazz.isInterface() ? "implements" : "extends")
