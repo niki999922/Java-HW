@@ -16,8 +16,7 @@ import static java.lang.String.format;
  * Date: 10.05.2019
  */
 public class HelloUDPClient implements HelloClient {
-    HelloUDPClient() {
-    }
+    HelloUDPClient() {}
 
     public static void main(String[] args) throws Exception {
         if (args != null || args.length != 5 || args[0].isEmpty() || args[1].isEmpty() || args[2].isEmpty() || args[3].isEmpty() || args[4].isEmpty()) {
@@ -36,11 +35,11 @@ public class HelloUDPClient implements HelloClient {
             int finalI = i;
             worker.submit(() -> {
                 try (DatagramSocket socket = new DatagramSocket()) {
-                    socket.setSoTimeout(100);
+                    socket.setSoTimeout(1000);
                     for (int j = 0; j < requests; j++) {
                         byte[] bytes = format("%s%d_%d", prefix, finalI, j).getBytes(StandardCharsets.UTF_8);
                         DatagramPacket request = new DatagramPacket(bytes, bytes.length, address);
-                        retry(socket, request);
+                        send(socket, request);
                     }
                 } catch (SocketException ignored) {
                     System.err.println("Fail of sending or receiving data to address: " + address);
@@ -55,24 +54,28 @@ public class HelloUDPClient implements HelloClient {
         }
     }
 
-    private void retry(DatagramSocket socket, DatagramPacket request) {
+    private void send(DatagramSocket socket, DatagramPacket request) {
         while (!socket.isClosed()) {
             try {
                 socket.send(request);
                 DatagramPacket response = new DatagramPacket(new byte[socket.getReceiveBufferSize()], socket.getReceiveBufferSize());
                 socket.receive(response);
-                String message = new String(response.getData(), response.getOffset(), response.getLength(), StandardCharsets.UTF_8);
+                String message = getMessage(response.getData(), response.getOffset(), response.getLength());
                 String expected = new String(request.getData());
                 if (message.contains(expected)) {
                     return;
                 }
             } catch (SocketTimeoutException ignored) {
             } catch (SocketException ignored) {
-                System.err.println("Unable to create a datagram socket with address " + socket.getInetAddress().getHostName());
+                System.err.println("Can't create datagram socket with address " + socket.getInetAddress().getHostName());
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
         }
+    }
+
+    private String getMessage(byte[] data, int offset, int length) {
+        return new String(data, offset, length, StandardCharsets.UTF_8);
     }
 
 }
