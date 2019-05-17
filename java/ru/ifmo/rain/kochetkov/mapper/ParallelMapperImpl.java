@@ -19,7 +19,7 @@ public class ParallelMapperImpl implements ParallelMapper {
     private final Lock lock;
     private final Condition queueNotEmpty, queueNotFull;
 
-    private static final int MAX_SIZE = 100;
+    private static final int MAX = 250;
 
     public ParallelMapperImpl(int threadsNumber) {
         if (threadsNumber <= 0) throw new IllegalArgumentException("You have incorrect count of threads.");
@@ -57,7 +57,7 @@ public class ParallelMapperImpl implements ParallelMapper {
     private <T, R> void addTask(Function<? super T, ? extends R> f, T arg, int index, List<R> result, CountDownLatch countDownLatch) throws InterruptedException {
         lock.lock();
         try {
-            while (tasks.size() == MAX_SIZE) {
+            while (tasks.size() == MAX) {
                 queueNotFull.await();
             }
             tasks.add(() -> {
