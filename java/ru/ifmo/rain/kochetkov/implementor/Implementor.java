@@ -189,7 +189,7 @@ public final class Implementor implements JarImpler {
             String[] argsForCompiling = new String[]{"-cp",
                     tmpDir.toString() + File.pathSeparator + stringBuilder.toString(),
                     "-encoding",
-                    "UTF8",
+                    "cp866",
                     getPathToFile(clazz, tmpDir, ".java").toString()};
             if (compiler.run(null, null, null, argsForCompiling) != 0) {
                 throw new ImplerException("Can't compile to class file");
@@ -308,7 +308,7 @@ public final class Implementor implements JarImpler {
      */
     private String getMethods(Class<?> clazz) {
         StringBuilder stringBuilder = new StringBuilder();
-        HashSet<MethodWrap> hashSet = new HashSet<>();
+        Set<MethodWrap> hashSet = new HashSet<>();
         getAbstractMethods(clazz.getMethods(), hashSet);
         while (clazz != null) {
             getAbstractMethods(clazz.getDeclaredMethods(), hashSet);
