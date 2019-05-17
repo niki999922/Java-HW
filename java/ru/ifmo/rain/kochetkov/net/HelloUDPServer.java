@@ -59,14 +59,15 @@ public class HelloUDPServer implements HelloServer {
 
     @Override
     public void close() {
-        worker.shutdown();
+        worker.shutdownNow();
         try {
-            worker.awaitTermination(4, TimeUnit.SECONDS);
+            worker.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
-        sender.shutdown();
+        sender.shutdownNow();
         try {
-            sender.awaitTermination(4, TimeUnit.SECONDS);
+            sender.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
+        socket.close();
     }
 
     public static void main(String[] args) {
