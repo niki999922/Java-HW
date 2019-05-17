@@ -4,6 +4,7 @@ import info.kgeorgiy.java.advanced.hello.HelloClient;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,10 +17,10 @@ import static java.lang.String.format;
  * Date: 10.05.2019
  */
 public class HelloUDPClient implements HelloClient {
-    HelloUDPClient() {}
+    public HelloUDPClient() {}
 
     public static void main(String[] args) throws Exception {
-        if (args != null || args.length != 5 || args[0].isEmpty() || args[1].isEmpty() || args[2].isEmpty() || args[3].isEmpty() || args[4].isEmpty()) {
+        if (args == null || args.length != 5 || args[0].isEmpty() || args[1].isEmpty() || args[2].isEmpty() || args[3].isEmpty() || args[4].isEmpty()) {
             System.err.println("Invalid arguments input");
             return;
         }
@@ -48,7 +49,7 @@ public class HelloUDPClient implements HelloClient {
         }
         worker.shutdown();
         try {
-            worker.awaitTermination(10, TimeUnit.SECONDS);
+            worker.awaitTermination(10L * threads * requests, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -62,6 +63,8 @@ public class HelloUDPClient implements HelloClient {
                 socket.receive(response);
                 String message = getMessage(response.getData(), response.getOffset(), response.getLength());
                 String expected = new String(request.getData());
+                System.err.println(Charset.defaultCharset());
+                System.err.println(message + " " + expected);
                 if (message.contains(expected)) {
                     return;
                 }
